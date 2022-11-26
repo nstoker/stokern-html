@@ -1,1 +1,1 @@
-web: bin/stokern
+web: bin/stokern-html
