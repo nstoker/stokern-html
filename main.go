@@ -31,7 +31,7 @@ func main() {
 	r.PathPrefix("/").Handler(spa)
 
 	r.Use(loggingMiddleware)
-	addr := fmt.Sprintf("127.0.0.1:%s", port)
+	addr := fmt.Sprintf(":%s", port)
 
 	srv := &http.Server{
 		Handler:      r,
