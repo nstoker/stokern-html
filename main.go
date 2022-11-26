@@ -32,7 +32,7 @@ func main() {
 
 	r.Use(loggingMiddleware)
 	addr := fmt.Sprintf(":%s", port)
-
+	log.Printf("bind address: %s", addr)
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         addr,
