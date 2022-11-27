@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -20,12 +22,14 @@ func main() {
 
 	// default home path is "/"
 	r.HandleFunc("/api/health", HealthCheckHandler)
-	spa := spaHandler{staticPath: "static", indexPath: "index.html"}
-	r.PathPrefix("/").Handler(spa)
 
+	spa := spaHandler{staticPath: "static", indexPath: "index.html"}
+
+	r.PathPrefix("/").Handler(spa)
 	r.Use(loggingMiddleware)
+
 	addr := fmt.Sprintf(":%s", port)
-	log.Printf("bind address: %s", addr)
+
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         addr,
@@ -33,28 +37,28 @@ func main() {
 		ReadTimeout:  wait * time.Second,
 	}
 
-	log.Print(fmt.Errorf(srv.ListenAndServe().Error()))
+	// log.Print(fmt.Errorf(srv.ListenAndServe().Error()))
 
-	// go func() {
-	// 	if err := srv.ListenAndServe(); err != nil {
-	// 		log.Println(err)
-	// 	}
-	// }()
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println(err)
+		}
+	}()
 
-	// c := make(chan os.Signal, 1)
-	// // We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
-	// // SIGKILL, SIGQUIT, or SIGTERM (Ctrl_/) will not be caught
-	// signal.Notify(c, os.Interrupt)
+	c := make(chan os.Signal, 1)
+	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	// SIGKILL, SIGQUIT, or SIGTERM (Ctrl_/) will not be caught
+	signal.Notify(c, os.Interrupt)
 
-	// // Block until we receive our signal
-	// <-c
+	// Block until we receive our signal
+	<-c
 
-	// // create a deadline to wait for
-	// ctx, cancel := context.WithTimeout(context.Background(), wait)
-	// defer cancel()
+	// create a deadline to wait for
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	defer cancel()
 
-	// // Doesn't block if no connections, but will otherwise wait until the timeout deadline
-	// srv.Shutdown(ctx)
+	// Doesn't block if no connections, but will otherwise wait until the timeout deadline
+	srv.Shutdown(ctx)
 
 	// Optionally you could run srv.Shutdown in a goroutine and block on <-ctx.Done() if your applications should wait
 	// for other services to finalize based on context cancellation
