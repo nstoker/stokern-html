@@ -1,14 +1,12 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -40,26 +38,28 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
-		}
-	}()
+	log.Print(fmt.Errorf(srv.ListenAndServe().Error()))
 
-	c := make(chan os.Signal, 1)
-	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
-	// SIGKILL, SIGQUIT, or SIGTERM (Ctrl_/) will not be caught
-	signal.Notify(c, os.Interrupt)
+	// go func() {
+	// 	if err := srv.ListenAndServe(); err != nil {
+	// 		log.Println(err)
+	// 	}
+	// }()
 
-	// Block until we receive our signal
-	<-c
+	// c := make(chan os.Signal, 1)
+	// // We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	// // SIGKILL, SIGQUIT, or SIGTERM (Ctrl_/) will not be caught
+	// signal.Notify(c, os.Interrupt)
 
-	// create a deadline to wait for
-	ctx, cancel := context.WithTimeout(context.Background(), wait)
-	defer cancel()
+	// // Block until we receive our signal
+	// <-c
 
-	// Doesn't block if no connections, but will otherwise wait until the timeout deadline
-	srv.Shutdown(ctx)
+	// // create a deadline to wait for
+	// ctx, cancel := context.WithTimeout(context.Background(), wait)
+	// defer cancel()
+
+	// // Doesn't block if no connections, but will otherwise wait until the timeout deadline
+	// srv.Shutdown(ctx)
 
 	// Optionally you could run srv.Shutdown in a goroutine and block on <-ctx.Done() if your applications should wait
 	// for other services to finalize based on context cancellation
