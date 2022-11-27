@@ -14,8 +14,8 @@ import (
 
 // Only serving a static files for now
 func main() {
-	var port string
-	var wait time.Duration
+	port := getenv("PORT", "3000")
+	wait := time.Second * 25
 
 	flag.StringVar(&port, "PORT", "3000", "the port to listen for requests on")
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*25, "the duration for which the server will gracefully wait for existing connections to finish - eg 15s or 1m")
@@ -78,4 +78,14 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 		Alive: true,
 	}
 	json.NewEncoder(w).Encode(health)
+}
+
+func getenv(key, fallback string) string {
+	value := os.Getenv(key)
+
+	if len(value) == 0 {
+		return fallback
+	}
+
+	return value
 }
