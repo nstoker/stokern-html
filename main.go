@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,10 +16,6 @@ func main() {
 	port := getenv("PORT", "3000")
 	wait := time.Second * 25
 
-	flag.StringVar(&port, "PORT", "3000", "the port to listen for requests on")
-	flag.DurationVar(&wait, "graceful-timeout", time.Second*25, "the duration for which the server will gracefully wait for existing connections to finish - eg 15s or 1m")
-	flag.Parse()
-
 	r := mux.NewRouter()
 
 	// default home path is "/"
@@ -34,8 +29,8 @@ func main() {
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         addr,
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		WriteTimeout: wait * time.Second,
+		ReadTimeout:  wait * time.Second,
 	}
 
 	log.Print(fmt.Errorf(srv.ListenAndServe().Error()))
@@ -81,11 +76,9 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getenv(key, fallback string) string {
-	value := os.Getenv(key)
-
-	if len(value) == 0 {
-		return fallback
+	if value, ok := os.LookupEnv(key); ok {
+		return value
 	}
 
-	return value
+	return fallback
 }
